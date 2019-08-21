@@ -17,7 +17,6 @@ import flask
 from flask import send_file
 import urllib
 
-
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
 
@@ -37,7 +36,6 @@ styles = {
     }
 }
 
-
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
 
@@ -50,10 +48,13 @@ for sheet_name in df.sheet_names:
     sheet_to_df_map[sheet_name] = df.parse(sheet_name)
     available_indicators.append(df.parse(sheet_name).columns[0])
 
+
 df3_1_1a = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = '3.1.1a' ,header = 2)
 trim3_1_1a = df3_1_1a.drop([df3_1_1a.index[-1]])
+trim3_1_1a_1 = trim3_1_1a.set_index('Unnamed: 0')
 years = trim3_1_1a.columns.values[1:]
 
+trim3_1_1a_1_T = trim3_1_1a_1.transpose()
 
 info = {}
 years_options_list = []
@@ -71,6 +72,7 @@ for i in range(len(available_indicators)):
     info['value'] = str(df.sheet_names[i])
     table_options_list.append(info)
     info = {}
+
 
 ######################################### MAIN APP #########################################
 
@@ -112,15 +114,6 @@ def generate_control_card():
             ),  
             html.Br(),
             html.Br(),
-            html.P("Graph Selector"),
-            dcc.Dropdown(
-                id='graph',
-                options=[{'label': i, 'value': i} for i in ['pie chart']],
-                value='pie chart',
-            ),
-            html.Br(),
-            html.Br(),
-            html.Br(),
             #Export data
             html.Div([
             html.A(html.Button('Export Data', id='download-button'), id='download-link',download="rawdata.csv", href="",target="_blank")
@@ -156,7 +149,7 @@ app.layout = html.Div(
                 ),
                 ], style={"textAlign": "center"},
                     ),       
-                    # datatable
+                # datatable
                 html.Div(
                     [
                     dash_table.DataTable(
@@ -187,20 +180,40 @@ app.layout = html.Div(
             ],
         ),
 
-        # Bottom column
+        # Bottom left graph
         html.Div(
-            id="bottom-column",
+            id="bottom-left-graph",
             className="five columns",
             children=[
                 html.Div([html.B(
                     'Pie Chart',
-                    id='graph-title'
+                    id='pie-graph-title'
                 ),  
                 ], style={"textAlign": "center","height": "100%", "width": "100%"},
-                className="wait_time_graph",   
+                className="pie_chart",   
                     ),
                 html.Div([
-                dcc.Graph(id="chart"),
+                dcc.Graph(id="pie-chart"),
+                ]
+                #,style = {"height" : "80vh", "width" : "80vh"}
+                ),
+            ],
+        ),
+
+        # Bottom mid graph
+        html.Div(
+            id="bottom-mid-graph",
+            className="nine columns",
+            children=[
+                html.Div([html.B(
+                    'Line Chart',   
+                    id='line-graph-title'
+                ),  
+                ], style={"textAlign": "center","height": "100%", "width": "100%"},
+                className="line_chart",   
+                    ),
+                html.Div([
+                dcc.Graph(id="line-chart"),
                 ]
                 #,style = {"height" : "80vh", "width" : "80vh"}
                 ),
@@ -243,13 +256,13 @@ def update_downloader(selected_table):
     return csvString
 
 # callback for pie chart
-@app.callback(Output('chart', 'figure'),[Input('year-selector', 'value')])
+@app.callback(Output('pie-chart', 'figure'),[Input('year-selector', 'value')])
 
-def update_figure(selected_year):  
+def update_pie_chart(selected_year):  
     return {
         'data': [go.Pie(
-        labels=trim3_1_1a['Unnamed: 0'].values.tolist()[1:],
-        values=trim3_1_1a[selected_year].values.tolist()[1:],
+        labels=trim3_1_1a['Unnamed: 0'].values.tolist(),
+        values=trim3_1_1a[selected_year].values.tolist(),
                             marker={'colors': ['#EF963B', '#C93277', '#349600', '#EF533B', '#57D4F1','#96D38C']})],
         'layout': go.Layout(title=dict( text = f"Yearly result on "+str(selected_year),
                             xanchor = 'left'),    
@@ -263,6 +276,25 @@ def update_figure(selected_year):
                             ),
                             margin={'l': 0, 'r': 0},
                             autosize = True)}
+
+# callback for line chart
+@app.callback(Output('line-chart', 'figure'),[Input('table-selector', 'value')])
+
+def update_line_chart(selected_table):  
+    trace = []
+
+    selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table)
+
+    #for i in range(len(years)):
+    #    years[i] = years[i][:4]
+    
+    for i in trim3_1_1a_1_T.columns:
+        trace.append(go.Scatter(x=[2008,2009,2010,2011,2012,2013,2014], y=trim3_1_1a_1_T[i].values.tolist(), name = i, mode='lines',))
+    return {
+        'data': trace,
+        'layout': go.Layout(title=str(selected_df.columns[0]), colorway=['#fdae61', '#abd9e9', '#2c7bb6'],
+                                yaxis={"title": str(selected_df.iloc[0,0])}, xaxis={"title": "Date"})}
+
 
 ######################################### CSS #########################################
 
