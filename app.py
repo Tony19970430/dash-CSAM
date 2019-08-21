@@ -180,10 +180,10 @@ app.layout = html.Div(
             ],
         ),
 
-        # Bottom left graph
+        # mid left graph
         html.Div(
-            id="bottom-left-graph",
-            className="five columns",
+            id="mid-left-graph",
+            className="six columns",
             children=[
                 html.Div([html.B(
                     'Pie Chart',
@@ -195,14 +195,32 @@ app.layout = html.Div(
                 html.Div([
                 dcc.Graph(id="pie-chart"),
                 ]
-                #,style = {"height" : "80vh", "width" : "80vh"}
                 ),
             ],
         ),
 
-        # Bottom mid graph
+        # mid right graph
         html.Div(
-            id="bottom-mid-graph",
+            id="mid-right-graph",
+            className="ten columns",
+            children=[
+                html.Div([html.B(
+                    'Bar Chart',
+                    id='bar-graph-title'
+                ),  
+                ], style={"textAlign": "center","height": "100%", "width": "100%"},
+                className="bar_chart",   
+                    ),
+                html.Div([
+                dcc.Graph(id="bar-chart"),
+                ]
+                ),
+            ],
+        ),
+
+        # bottom graph
+        html.Div(
+            id="bottom-graph",
             className="nine columns",
             children=[
                 html.Div([html.B(
@@ -215,7 +233,6 @@ app.layout = html.Div(
                 html.Div([
                 dcc.Graph(id="line-chart"),
                 ]
-                #,style = {"height" : "80vh", "width" : "80vh"}
                 ),
             ],
         ),
@@ -277,6 +294,29 @@ def update_pie_chart(selected_year):
                             margin={'l': 0, 'r': 0},
                             autosize = True)}
 
+# callback for bar chart
+@app.callback(Output('bar-chart', 'figure'),[Input('table-selector', 'value')])
+
+def update_bar_chart(selected_table):
+
+    trace = []
+
+    selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table)
+
+    for i in range(len(years)):
+        years[i] = years[i][:4]
+    
+    for i in trim3_1_1a_1_T.columns:
+        trace.append(go.Bar(x=years, y=trim3_1_1a_1_T[i].values.tolist(), name = i,))
+
+    return {
+        'data': trace,
+        'layout': go.Layout(title=str(selected_df.columns[0]),hovermode="closest",
+                            xaxis={'title': "year", 'titlefont': {'color': 'black', 'size': 14},
+                                   'tickfont': {'size': 9, 'color': 'black'}},
+                            yaxis={'title': "Area (‘000 ha)", 'titlefont': {'color': 'black', 'size': 14, },
+                                   'tickfont': {'color': 'black'}})}
+
 # callback for line chart
 @app.callback(Output('line-chart', 'figure'),[Input('table-selector', 'value')])
 
@@ -285,11 +325,11 @@ def update_line_chart(selected_table):
 
     selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table)
 
-    #for i in range(len(years)):
-    #    years[i] = years[i][:4]
+    for i in range(len(years)):
+        years[i] = years[i][:4]
     
     for i in trim3_1_1a_1_T.columns:
-        trace.append(go.Scatter(x=[2008,2009,2010,2011,2012,2013,2014], y=trim3_1_1a_1_T[i].values.tolist(), name = i, mode='lines',))
+        trace.append(go.Scatter(x=years, y=trim3_1_1a_1_T[i].values.tolist(), name = i, mode='lines',))
     return {
         'data': trace,
         'layout': go.Layout(title=str(selected_df.columns[0]), colorway=['#fdae61', '#abd9e9', '#2c7bb6'],
