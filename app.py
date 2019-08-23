@@ -48,7 +48,6 @@ for sheet_name in df.sheet_names:
     sheet_to_df_map[sheet_name] = df.parse(sheet_name)
     available_indicators.append(df.parse(sheet_name).columns[0])
 
-
 df3_1_1a = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = '3.1.1a' ,header = 2)
 trim3_1_1a = df3_1_1a.drop([df3_1_1a.index[-1]])
 trim3_1_1a_1 = trim3_1_1a.set_index('Unnamed: 0')
@@ -121,9 +120,8 @@ def generate_control_card():
         ],
     )
 
-app.layout = html.Div(
-    id="app-container",
-    children=[
+app.layout = html.Div([
+    html.Div(id="app-container",children=[
         # Banner
         html.Div([html.H2(
                 'Database for China Agricultural',
@@ -179,7 +177,9 @@ app.layout = html.Div(
                 ),
             ],
         ),
-
+        ],
+    ),
+    html.Div(id="graph-container",children=[
         # mid left graph
         html.Div(
             id="mid-left-graph",
@@ -236,9 +236,8 @@ app.layout = html.Div(
                 ),
             ],
         ),
-
-    ],
-)
+    ]),
+])
 
 ######################################### UPDATING FIGURES #########################################
 @app.callback(
@@ -330,6 +329,7 @@ def update_line_chart(selected_table):
     
     for i in trim3_1_1a_1_T.columns:
         trace.append(go.Scatter(x=years, y=trim3_1_1a_1_T[i].values.tolist(), name = i, mode='lines',))
+        
     return {
         'data': trace,
         'layout': go.Layout(title=str(selected_df.columns[0]), colorway=['#fdae61', '#abd9e9', '#2c7bb6'],
