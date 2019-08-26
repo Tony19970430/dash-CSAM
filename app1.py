@@ -16,6 +16,7 @@ import xlsxwriter
 import flask
 from flask import send_file
 import urllib
+import plotly.figure_factory as ff
 
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
@@ -147,46 +148,9 @@ app.layout = html.Div([
             children=[description_card(), generate_control_card()]
         ),
         # Right column
-        html.Div(
-            id="right-column",
-            className="seven columns",
-            children=[
-                html.Div([html.B(
-                    'Data Table',
-                    id='table-title'
-                ),
-                ], style={"textAlign": "center"},
-                    ),       
-                # datatable
-                html.Div(
-                    [
-                    dash_table.DataTable(
-                        id='table',
-                        css=[
-                                {
-                        'selector': '.dash-cell div.dash-cell-value',
-                        'rule': 'display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;'
-                                }
-                            ],
-                        style_table={'overflowX': 'scroll',
-                        'overflowY': 'scroll',
-                        'height': '400px',
-                        },
-                        style_cell={
-                        'fontSize':12,
-                        'font-family':'sans-serif',
-                        'textAlign': 'left'
-                                    },
-                        style_header={
-                            'backgroundColor': 'white',
-                            'fontWeight': 'bold'
-                        },
-                        sort_action='native',                        
-                        ),
-                    ],
-                ),
-            ],
-        ),
+        
+        html.Div([dcc.Graph(id='table')])
+
         ],
     ),
     html.Div(id="graph-container",children=[
@@ -260,7 +224,7 @@ def update_3_1_1a_option(table_name):
         return {'display': 'none'}
 
 # callback for datatable
-@app.callback([Output('table', 'data'), Output('table', 'columns')],[Input('table-selector', 'value')])
+@app.callback([Output('table', 'figure')],[Input('table-selector', 'value')])
 
 def updateTable(selected_table):
     if selected_table in ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2','3.4.9','3.4.11','3.4.13','3.4.16','3.4.20'] :
@@ -268,7 +232,8 @@ def updateTable(selected_table):
     else:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
     selected_df = selected_df.drop(selected_df.index[-1])
-    return (selected_df.to_dict('records'),[{"name": i, "id": i} for i in selected_df.columns])
+    new_table_figure = ff.create_table(selected_df)
+    return new_table_figure
 
 # Callback for csv download
 @app.callback(
