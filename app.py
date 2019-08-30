@@ -58,15 +58,63 @@ def trim(df):
     info = {}
     years_options_list = []
     for i in years:
-        info['label'] = i
+        try:
+            info['label'] = int(i)
+        except:
+            info['label'] = i
         info['value'] = i
         years_options_list.append(info)
         info = {}
     return years, trim_df, trim_df_T, years_options_list 
 
-df3_1_1a = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = '3.3.1')
+def trim2(df):
+    trim_df = df.drop([df.index[-1]])
+    trim_df = trim_df.set_index('Year')
+
+    trim_df_T = trim_df.transpose()
+    years = trim_df_T.columns.values
+
+    info = {}
+    years_options_list = []
+    for i in years:
+        try:
+            info['label'] = int(i)
+        except:
+            info['label'] = i
+        info['value'] = i
+        years_options_list.append(info)
+        info = {}
+    return years, trim_df, trim_df_T, years_options_list 
+
+def trim3(df):
+    trim_df = df.drop([df.index[-1]])
+    trim_df = trim_df.drop([df.index[0]])
+    trim_df = trim_df.set_index('Year')
+
+    trim_df_T = trim_df.transpose()
+    years = trim_df_T.columns.values
+
+    info = {}
+    years_options_list = []
+    for i in years:
+        try:
+            info['label'] = int(i)
+        except:
+            info['label'] = i
+        info['value'] = i
+
+        years_options_list.append(info)
+        info = {}
+    return years, trim_df, trim_df_T, years_options_list 
+
+#df3_1_1a = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = '3.4.16', header = 2)
 
 #years, trim3_1_1a, trim3_1_1a_T, years_options_list = trim(df3_1_1a)
+#print(years)
+#print(trim3_1_1a)
+#print(trim3_1_1a_T)
+#print(years_options_list)
+#input()
 
 info = {}
 table_options_list = []
@@ -76,7 +124,8 @@ for i in range(len(available_indicators)):
     table_options_list.append(info)
     info = {}
 
-
+table_list1 = ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2',' 3.4.9','3.4.11',' 3.4.13',' 3.4.16','3.4.20']
+table_list2 = [' 3.4.22', ' 3.5.1', ' 3.5.2']
 ######################################### MAIN APP #########################################
 
 def description_card():
@@ -185,7 +234,7 @@ app.layout = html.Div([
         # mid left graph
         html.Div(
             id="mid-left-graph",
-            className="six columns",
+            className="eleven columns",
             children=[
                 html.Div([html.B(
                     'Pie Chart',
@@ -201,10 +250,13 @@ app.layout = html.Div([
             ],
         ),
 
+        html.Br(),
+        html.Br(),
+
         # mid right graph
         html.Div(
             id="mid-right-graph",
-            className="ten columns",
+            className="eleven columns",
             children=[
                 html.Div([html.B(
                     'Bar Chart',
@@ -220,10 +272,13 @@ app.layout = html.Div([
             ],
         ),
 
+        html.Br(),
+        html.Br(),
+
         # bottom graph
         html.Div(
             id="bottom-graph",
-            className="nine columns",
+            className="eleven columns",
             children=[
                 html.Div([html.B(
                     'Line Chart',   
@@ -243,26 +298,42 @@ app.layout = html.Div([
 
 ######################################### UPDATING FIGURES #########################################
 # callback for display year-selector or not
-@app.callback([Output('year-selector', 'style'),Output('year-selector', 'options'), Output('year-selector', 'value')],[Input('table-selector', 'value')])
-def update_3_1_1a_option(selected_table):
-    if selected_table in ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2','3.4.9','3.4.11','3.4.13','3.4.16','3.4.20'] :
+@app.callback([Output('year-selector', 'style'),Output('year-selector', 'options')],[Input('table-selector', 'value')])
+def update_years_option(selected_table):
+    if selected_table in table_list1:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 2)
+        selected_df = selected_df.fillna(9999)
+        years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+
+    elif selected_table in table_list2:
+        selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
+        selected_df = selected_df.fillna(9999)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
+
     else:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
+        selected_df = selected_df.fillna(9999)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim2(selected_df)
 
-    years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+    #if selected_table in ["3.1.1a","3.3.1"," 3.7.11",""]:
+    return {'display': 'block'} , years_options_list
+    #else:
+    #    return {'display': 'none'} , years_options_list
 
-    if selected_table in ["3.1.1a","3.3.1"]:
-        return {'display': 'block'} , years_options_list , years[0]
-    else:
-        return {'display': 'none'} , years_options_list , years[0]
+@app.callback(Output('year-selector', 'value'),[Input('year-selector', 'options')])
+def set_years_value(available_options):
+    return available_options[0]['value']
 
 # callback for datatable
 @app.callback([Output('table', 'data'), Output('table', 'columns')],[Input('table-selector', 'value')])
-
 def updateTable(selected_table):
-    if selected_table in ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2','3.4.9','3.4.11','3.4.13','3.4.16','3.4.20'] :
+    if selected_table in table_list1:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 2)
+
+    elif selected_table in table_list2:
+        selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
+
     else:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
     selected_df = selected_df.drop(selected_df.index[-1])
@@ -273,10 +344,7 @@ def updateTable(selected_table):
     return (selected_df.to_dict('records'),(dt_col_param))
 
 # Callback for csv download
-@app.callback(
-    Output('download-link', 'href'),
-    [Input('table-selector', 'value')])
-
+@app.callback(Output('download-link', 'href'),[Input('table-selector', 'value')])
 def update_downloader(selected_table):
     selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table,header = 1)
     csvString = selected_df.to_csv(index=False,encoding='utf-8-sig')    
@@ -285,23 +353,26 @@ def update_downloader(selected_table):
 
 # callback for pie chart
 @app.callback(Output('pie-chart', 'figure'),[Input('year-selector', 'value'),Input('table-selector', 'value')])
-
 def update_pie_chart(selected_year,selected_table):
 
-    if selected_table in ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2','3.4.9','3.4.11','3.4.13','3.4.16','3.4.20'] :
+    if selected_table in table_list1:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 2)
+        years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+
+    #elif selected_table in table_list2:
+    #    selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
+    #    years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
+
     else:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
-
-    years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim2(selected_df)
 
     return {
         'data': [go.Pie(
         labels=trim_selected_df_T.columns,
         values=trim_selected_df[selected_year].values.tolist(),
                             marker={'colors': ['#EF963B', '#C93277', '#349600', '#EF533B', '#57D4F1','#96D38C']})],
-        'layout': go.Layout(title=dict( text = f"Yearly result on "+str(selected_year),
-                            xanchor = 'left'),    
+        'layout': go.Layout(title=dict( text = f"Yearly result on "+str(selected_year)),    
                             legend=dict(x=0, y=1.3,
                             font=dict(
                             family="sans-serif",
@@ -315,19 +386,23 @@ def update_pie_chart(selected_year,selected_table):
 
 # callback for bar chart
 @app.callback(Output('bar-chart', 'figure'),[Input('table-selector', 'value')])
-
 def update_bar_chart(selected_table):
     trace = []
 
     selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table)
     title = selected_df.columns[0].split(":")[1]
 
-    if selected_table in ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2','3.4.9','3.4.11','3.4.13','3.4.16','3.4.20'] :
+    if selected_table in table_list1:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 2)
+        years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+
+    elif selected_table in table_list2:
+        selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
+
     else:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
-
-    years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim2(selected_df)
 
     for i in range(len(years)):
         years[i] = str(years[i])[:4]
@@ -345,23 +420,27 @@ def update_bar_chart(selected_table):
 
 # callback for line chart
 @app.callback(Output('line-chart', 'figure'),[Input('table-selector', 'value')])
-
 def update_line_chart(selected_table):  
     trace = []
 
     selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table)
     title = selected_df.columns[0].split(":")[1]
 
-    if selected_table in ['3.1.1a','3.1.1b','3.2.2','3.2.4','3.3.1','3.3.2a','3.3.2b','3.4.2','3.4.9','3.4.11','3.4.13','3.4.16','3.4.20'] :
+    if selected_table in table_list1:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 2)
+        years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+
+    #elif selected_table in table_list2:
+    #    selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
+    #    years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
+
     else:
         selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
-
-    years, trim_selected_df, trim_selected_df_T, years_options_list = trim(selected_df)
+        years, trim_selected_df_T, trim_selected_df, years_options_list = trim2(selected_df)
 
     for i in range(len(years)):
         years[i] = str(years[i])[:4]
-    
+        
     for i in trim_selected_df_T.columns:
         trace.append(go.Scatter(x=years, y=trim_selected_df_T[i].values.tolist(), name = i, mode='lines',))
         
