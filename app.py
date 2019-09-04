@@ -160,6 +160,7 @@ def generate_control_card():
     """
     return html.Div(
         id="control-card",
+        style={'margin': '10px'},
         children=[
             html.P("Dataset",
                    style={"textAlign": "center", "height": "100%", "width": "100%",
@@ -216,15 +217,15 @@ app.layout = html.Div([
         # Left column
         html.Div(
             # id="left-column",
-            # className="eleven columns",
-            className="container",
+            className="twelve columns",
             children=[description_card(), generate_control_card()],
             style={"textAlign": "center"}
         ),
         html.Br(),
         # Right column
         html.Div(
-            className="card container",
+            className="card",
+            style={'margin': '10px'},
             children=[
                 html.Div(
                     id="mid-column",
@@ -277,7 +278,8 @@ app.layout = html.Div([
     html.Br(),
     html.Div(id="graph-container", children=[
         html.Div(
-            className="card container",
+            className="card",
+            style={'margin': '10px'},
             children=[
                 html.Div(
                     id="mid-left-graph",
@@ -306,7 +308,8 @@ app.layout = html.Div([
 
         # mid right graph
         html.Div(
-            className="card container",
+            className="card",
+            style={'margin': '10px'},
             children=[
                 html.Div(
                     id="mid-right-graph",
@@ -335,7 +338,8 @@ app.layout = html.Div([
         # bottom graph
 
         html.Div(
-            className="card container",
+            className="card",
+            style={'margin': '10px'},
             children=[
                 html.Div(
                     id="bottom-graph",
