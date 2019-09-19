@@ -218,7 +218,7 @@ app.layout = html.Div([
         html.Div(
             # id="left-column",
             className="twelve columns",
-            children=[description_card(), generate_control_card()],
+            children=[generate_control_card()],
             style={"textAlign": "center"}
         ),
         html.Br(),
@@ -551,7 +551,7 @@ def update_line_chart(selected_table):
                             yaxis={"title": str(trim_selected_df.iloc[0, 0])}, xaxis={"title": "Date"})}
 
 
-######################################### CSS #########################################
+######################################### CSS ##########################################################################################
 
 external_css = [
     "https://codepen.io/chriddyp/pen/bWLwgP.css"
