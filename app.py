@@ -17,16 +17,13 @@ import flask
 from flask import send_file
 import urllib
 
+
 # get relative data folder
 PATH = pathlib.Path(__file__).parent
 
 app = dash.Dash(
     __name__,
-    meta_tags=[{"name": "viewport",
-                "content": "width=device-width, initial-scale=1"}],
 )
-
-app.css.config.serve_locally = False
 
 server = app.server
 
@@ -111,16 +108,6 @@ def trim3(df):
         info = {}
     return years, trim_df, trim_df_T, years_options_list
 
-#df3_1_1a = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = '3.4.16', header = 2)
-
-#years, trim3_1_1a, trim3_1_1a_T, years_options_list = trim(df3_1_1a)
-# print(years)
-# print(trim3_1_1a)
-# print(trim3_1_1a_T)
-# print(years_options_list)
-# input()
-
-
 info = {}
 table_options_list = []
 for i in range(len(available_indicators)):
@@ -162,28 +149,25 @@ def generate_control_card():
         id="control-card",
         style={'margin': '10px'},
         children=[
-            html.P("Dataset",
-                   style={"textAlign": "center", "height": "100%", "width": "100%",
-                          "font-size": "26px", "padding-top": "5px"}),
-            html.Div(
-                className="seven columns",
-                children=[
+            html.Div([
+                html.Div([
                     dcc.Dropdown(
                         id='table-selector',
                         options=table_options_list,
                         value='3.1.1a'
-                    ),
-                ],
-            ),
+                    ), 
+                ],# className="eight columns"
+            ), 
+            ], className ="row"
+        ),
             # html.Br(),
             html.Div(
-                className="five columns",
                 style={'padding-left': '20px'},
                 children=[
                     dcc.Dropdown(
                         id='year-selector',
                         style={'display': 'none'}
-                    ),
+                    ), 
                     html.Br(),
                     # Export data
                     html.Div(
@@ -197,12 +181,10 @@ def generate_control_card():
                                                className="button"),
                                    id='download-link', download="rawdata.csv", href="", target="_blank")
                         ]),
-                ],
-            ),
-            html.Br(),
-        ],
+                ],# className="eight columns"
+            ), 
+        ], className="row"
     )
-
 
 app.layout = html.Div([
     html.Div(id="app-container", children=[
@@ -214,153 +196,70 @@ app.layout = html.Div([
         ], style={"textAlign": "center"},
             className="banner"
         ),
-        # Left column
-        html.Div(
-            # id="left-column",
-            className="twelve columns",
-            children=[generate_control_card()],
-            style={"textAlign": "center"}
-        ),
-        html.Br(),
         # Right column
-        html.Div(
-            className="card",
-            style={'margin': '10px'},
-            children=[
-                html.Div(
-                    id="mid-column",
-                    className="twelve columns",
-                    children=[
-                        html.Div([html.B(
-                            'Data Table',
-                            id='table-title'
-                        ),
-                        ], style={"textAlign": "center",
-                                  "font-size": "26px", "padding": "20px"},
-                        ),
-                        # datatable
-                        html.Div(
-                            [
-                                dash_table.DataTable(
-                                    id='table',
-                                    css=[
-                                        {
-                                            'selector': '.dash-cell div.dash-cell-value',
-                                            'rule': 'display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;'
-                                        }
-                                    ],
-                                    style_table={'overflowX': 'scroll',
-                                                 'overflowY': 'scroll',
-                                                 'height': '400px',
-                                                 },
-                                    style_cell={
-                                        'fontSize': 12,
-                                        'font-family': 'sans-serif',
-                                        'textAlign': 'left'
-                                    },
-                                    style_header={
-                                        'backgroundColor': 'white',
-                                        'fontWeight': 'bold'
-                                    },
-                                    sort_action='native',
-                                ),
+        # datatable
+        html.Div([                
+            html.Div(
+                [
+                    html.Div([
+                        dash_table.DataTable(
+                            id='table',
+                            css=[
+                                {
+                                    'selector': '.dash-cell div.dash-cell-value',
+                                    'rule': 'display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;'
+                                }
                             ],
+                            style_table={'overflowX': 'scroll',
+                                        'overflowY': 'scroll',
+                                        'height': '400px',
+                                        },
+                            style_cell={
+                                'fontSize': 12,
+                                'font-family': 'sans-serif',
+                                'textAlign': 'left'
+                            },
+                            style_header={
+                                'backgroundColor': 'white',
+                                'fontWeight': 'bold'
+                            },
+                            sort_action='native',
                         ),
-                    ],
-                ),
-            ],
-        ),
-    ],
+                    ], className = "pretty_container twelve columns"),
+            ], className = "row flex-display"),
+        ],
     ),
 
 
-    html.Br(),
-    html.Br(),
-    html.Div(id="graph-container", children=[
-        html.Div(
-            className="card",
-            style={'margin': '10px'},
-            children=[
-                html.Div(
-                    id="mid-left-graph",
-                    className="twelve columns",
-                    children=[
-                        html.Div([html.B(
-                            'Pie Chart',
-                            id='pie-graph-title',
-                            className="card-title"
-                        ),
-                        ], style={"textAlign": "center", "height": "100%", "width": "100%",
-                                  "font-size": "26px", "padding-top": "20px"},
-                            className="pie_chart",
-                        ),
-                        html.Div([
-                            dcc.Graph(id="pie-chart"),
-                        ]
-                        ),
-                    ],
-                ),
-            ],
+    html.Div([
+        html.Div([
+            dcc.Graph(
+                id='pie-chart'
+            )
+        ], className = 'pretty_container seven columns'),
+        # Left column
+        html.Div([
+            html.Div(
+                # id="left-column",
+                children=[generate_control_card()],
+                style={"textAlign": "center"}
+            ), 
+        ], className = "pretty_container four columns"
         ),
+    ]),
 
-        html.Br(),
-        html.Br(),
-
-        # mid right graph
-        html.Div(
-            className="card",
-            style={'margin': '10px'},
-            children=[
-                html.Div(
-                    id="mid-right-graph",
-                    className="eleven columns",
-                    children=[
-                        html.Div([html.B(
-                            'Bar Chart',
-                            id='bar-graph-title'
-                        ),
-                        ], style={"textAlign": "center", "height": "100%", "width": "100%",
-                                  "font-size": "26px", "padding-top": "20px"},
-                            className="bar_chart",
-                        ),
-                        html.Div([
-                            dcc.Graph(id="bar-chart"),
-                        ]
-                        ),
-                    ],
-                ),
-            ],
-        ),
-
-        html.Br(),
-        html.Br(),
-
+    html.Div([
+            dcc.Graph(
+                id='bar-chart'
+            )
+        ], className = "pretty_container twelve columns"),
         # bottom graph
 
-        html.Div(
-            className="card",
-            style={'margin': '10px'},
-            children=[
-                html.Div(
-                    id="bottom-graph",
-                    className="eleven columns",
-                    children=[
-                        html.Div([html.B(
-                            'Line Chart',
-                            id='line-graph-title'
-                        ),
-                        ], style={"textAlign": "center", "height": "100%", "width": "100%",
-                                  "font-size": "26px", "padding-top": "20px"},
-                            className="line_chart",
-                        ),
-                        html.Div([
-                            dcc.Graph(id="line-chart"),
-                        ]
-                        ),
-                    ],
-                ),
-            ],
-        ),
+    html.Div([
+            dcc.Graph(
+                id='line-chart'
+            )
+        ], className = "pretty_container twelve columns"),
     ]),
 ])
 
@@ -552,23 +451,6 @@ def update_line_chart(selected_table):
 
 
 ######################################### CSS ##########################################################################################
-
-external_css = [
-    "https://codepen.io/chriddyp/pen/bWLwgP.css"
-    # Normalize the CSS
-    "https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css",
-    "https://fonts.googleapis.com/css?family=Open+Sans|Roboto"  # Fonts
-    "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
-    "https://cdn.rawgit.com/TahiriNadia/styles/faf8c1c3/stylesheet.css",
-    "https://cdn.rawgit.com/TahiriNadia/styles/b1026938/custum-styles_phyloapp.css",
-    # Bootstrap in the end
-    "https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css",
-    "https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css",
-    "https://use.fontawesome.com/releases/v5.6.1/css/all.css"
-]
-
-for css in external_css:
-    app.css.append_css({"external_url": css})
 
 if __name__ == '__main__':
     app.run_server(debug=True)
