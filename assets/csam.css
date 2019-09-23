@@ -25,7 +25,16 @@
     position: relative;
     box-shadow: 2px 2px 2px lightgrey;
   }
-  
+
+  .big_container {
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    margin: 10px;
+    padding: 15px;
+    position: relative;
+    box-shadow: 2px 2px 2px lightgrey;
+  }
+
   .bare_container {
     margin: 0 0 0 0;
     padding: 0 0 0 0;

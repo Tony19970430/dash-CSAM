@@ -42,6 +42,7 @@ df = pd.ExcelFile(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"))
 sheet_to_df_map = {}
 available_indicators = []
 
+
 for sheet_name in df.sheet_names:
     sheet_to_df_map[sheet_name] = df.parse(sheet_name)
     available_indicators.append(df.parse(sheet_name).columns[0])
@@ -77,13 +78,14 @@ def trim2(df):
     info = {}
     years_options_list = []
     for i in years:
-        try:
-            info['label'] = int(i)
-        except:
-            info['label'] = i
-        info['value'] = i
-        years_options_list.append(info)
-        info = {}
+        if i <= 2100:
+            try:
+                info['label'] = int(i)
+            except:
+                info['label'] = i
+            info['value'] = i
+            years_options_list.append(info)
+            info = {}
     return years, trim_df, trim_df_T, years_options_list
 
 
@@ -98,20 +100,20 @@ def trim3(df):
     info = {}
     years_options_list = []
     for i in years:
-        try:
-            info['label'] = int(i)
-        except:
-            info['label'] = i
-        info['value'] = i
-
-        years_options_list.append(info)
-        info = {}
+        if i <= 2100:
+            try:
+                info['label'] = int(i)
+            except:
+                info['label'] = i
+            info['value'] = i
+            years_options_list.append(info)
+            info = {}
     return years, trim_df, trim_df_T, years_options_list
 
 info = {}
 table_options_list = []
 for i in range(len(available_indicators)):
-    info['label'] = str(available_indicators[i])
+    info['label'] = str(available_indicators[i].split(":")[1].replace("\n","").replace("\xa0","").replace("\\"," " ))
     info['value'] = str(df.sheet_names[i])
     table_options_list.append(info)
     info = {}
@@ -119,6 +121,7 @@ for i in range(len(available_indicators)):
 table_list1 = ['3.1.1a', '3.1.1b', '3.2.2', '3.2.4', '3.3.1', '3.3.2a',
                '3.3.2b', '3.4.2', ' 3.4.9', '3.4.11', ' 3.4.13', ' 3.4.16', '3.4.20']
 table_list2 = [' 3.4.22', ' 3.5.1', ' 3.5.2']
+
 ######################################### MAIN APP #########################################
 
 
@@ -236,7 +239,7 @@ app.layout = html.Div([
             dcc.Graph(
                 id='pie-chart'
             )
-        ], className = 'pretty_container seven columns'),
+        ], className = 'pretty_container eight columns'),
         # Left column
         html.Div([
             html.Div(
@@ -288,11 +291,7 @@ def update_years_option(selected_table):
         years, trim_selected_df_T, trim_selected_df, years_options_list = trim2(
             selected_df)
 
-    # if selected_table in ["3.1.1a","3.3.1"," 3.7.11",""]:
     return {'display': 'block'}, years_options_list
-    # else:
-    #    return {'display': 'none'} , years_options_list
-
 
 @app.callback(Output('year-selector', 'value'), [Input('year-selector', 'options')])
 def set_years_value(available_options):
@@ -341,10 +340,6 @@ def update_pie_chart(selected_year, selected_table):
         years, trim_selected_df, trim_selected_df_T, years_options_list = trim(
             selected_df)
 
-    # elif selected_table in table_list2:
-    #    selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
-    #    years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
-
     else:
         selected_df = pd.read_excel(PATH.joinpath(
             "(4.21)Database for China Agricultural.xlsx"), sheet_name=selected_table, header=1)
@@ -356,7 +351,7 @@ def update_pie_chart(selected_year, selected_table):
             labels=trim_selected_df_T.columns,
             values=trim_selected_df[selected_year].values.tolist(),
             marker={'colors': ['#EF963B', '#C93277', '#349600', '#EF533B', '#57D4F1', '#96D38C']})],
-        'layout': go.Layout(title=dict(text=f"Yearly result on "+str(selected_year)),
+        'layout': go.Layout(title=dict(text=f"Yearly result on "+str(selected_year),x=0.1),
                             legend=dict(x=0.5, y=-0.2,
                                         font=dict(
                                             family="sans-serif",
@@ -427,10 +422,6 @@ def update_line_chart(selected_table):
         years, trim_selected_df, trim_selected_df_T, years_options_list = trim(
             selected_df)
 
-    # elif selected_table in table_list2:
-    #    selected_df = pd.read_excel(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"),sheet_name = selected_table ,header = 1)
-    #    years, trim_selected_df_T, trim_selected_df, years_options_list = trim3(selected_df)
-
     else:
         selected_df = pd.read_excel(PATH.joinpath(
             "(4.21)Database for China Agricultural.xlsx"), sheet_name=selected_table, header=1)
@@ -448,9 +439,6 @@ def update_line_chart(selected_table):
         'data': trace,
         'layout': go.Layout(title=str(title), colorway=['#fdae61', '#abd9e9', '#2c7bb6'],
                             yaxis={"title": str(trim_selected_df.iloc[0, 0])}, xaxis={"title": "Date"})}
-
-
-######################################### CSS ##########################################################################################
 
 if __name__ == '__main__':
     app.run_server(debug=True)
