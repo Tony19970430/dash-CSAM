@@ -27,13 +27,6 @@ app = dash.Dash(
 
 server = app.server
 
-styles = {
-    'pre': {
-        'border': 'thin lightgrey solid',
-        'overflowX': 'scroll'
-    }
-}
-
 # Create global chart template
 mapbox_access_token = "pk.eyJ1IjoiamFja2x1byIsImEiOiJjajNlcnh3MzEwMHZtMzNueGw3NWw5ZXF5In0.fk8k06T96Ml9CLGgKmk81w"
 
@@ -42,11 +35,9 @@ df = pd.ExcelFile(PATH.joinpath("(4.21)Database for China Agricultural.xlsx"))
 sheet_to_df_map = {}
 available_indicators = []
 
-
 for sheet_name in df.sheet_names:
     sheet_to_df_map[sheet_name] = df.parse(sheet_name)
     available_indicators.append(df.parse(sheet_name).columns[0])
-
 
 def trim(df):
     trim_df = df.drop([df.index[-1]])
@@ -118,55 +109,53 @@ for i in range(len(available_indicators)):
     table_options_list.append(info)
     info = {}
 
+# for double headers
 table_list1 = ['3.1.1a', '3.1.1b', '3.2.2', '3.2.4', '3.3.1', '3.3.2a',
-               '3.3.2b', '3.4.2', ' 3.4.9', '3.4.11', ' 3.4.13', ' 3.4.16', '3.4.20']
-table_list2 = [' 3.4.22', ' 3.5.1', ' 3.5.2']
+               '3.3.2b', '3.3.2c', '3.3.2d', '3.3.2e', '3.4.2', ' 3.4.9', '3.4.11', ' 3.4.13', ' 3.4.16', '3.4.20']
+
+# for triple headers
+table_list2 = [' 3.4.22', ' 3.5.1a', ' 3.5.1b', ' 3.5.2', '3.   4.5b']
 
 ######################################### MAIN APP #########################################
-
-
-def description_card():
-    """
-    :return: A Div containing dashboard title & descriptions.
-    """
-    return html.Div(
-        id="description-card",
-        children=[
-            html.H1("Welcome to UN-CSAM Analytics Dashboard",
-                    style={"textAlign": "center", "height": "100%", "width": "100%",
-                           "font-size": "28px", "padding-top": "20px"}),
-
-            html.Div(
-                id="intro",
-                #children="Explore clinic patient volume by time of day, waiting time, and care score. Click on the heatmap to visualize patient experience at different time points.",
-            ),
-        ]
-    )
-
-
 def generate_control_card():
     """
     :return: A Div containing controls for graphs.
     """
     return html.Div(
         id="control-card",
-        style={'margin': '10px'},
+        style={'margin': '10px'},            
+
         children=[
             html.Div([
                 html.Div([
+                    html.H6('This is the Control panel of the database, you can qeury data you want here',id='des'),
+                    html.H6('Select country here',id='country-selector-text'),
+                    dcc.Dropdown(
+                        id='country-selector',
+                        options=[{'label': 'China', 'value': 'China'},{'label': 'Indonesia', 'value': 'Indonesia'}],
+                        value='China'
+                    ), 
+                ],
+            ), 
+            ], className ="row"
+        ),
+            html.Div([
+                html.Div([
+                    html.H6('Select table here',id='table-selector-text'),
                     dcc.Dropdown(
                         id='table-selector',
                         options=table_options_list,
                         value='3.1.1a'
                     ), 
-                ],# className="eight columns"
+                ],
             ), 
             ], className ="row"
         ),
-            # html.Br(),
+
             html.Div(
                 style={'padding-left': '20px'},
                 children=[
+                    html.H6('Select year here',id='year-selector-text'),
                     dcc.Dropdown(
                         id='year-selector',
                         style={'display': 'none'}
@@ -184,7 +173,7 @@ def generate_control_card():
                                                className="button"),
                                    id='download-link', download="rawdata.csv", href="", target="_blank")
                         ]),
-                ],# className="eight columns"
+                ],
             ), 
         ], className="row"
     )
@@ -193,13 +182,23 @@ app.layout = html.Div([
     html.Div(id="app-container", children=[
         # Banner
         html.Div([html.H2(
-                'Database for China Agricultural',
+                'Database for Agriculture',
                 id='title'
         ),
-        ], style={"textAlign": "center"},
+        ], style={"textAlign": "left"},
             className="banner"
         ),
-        # Right column
+
+        # Left column
+        html.Div([
+            html.Div(
+                # id="left-column",
+                children=[generate_control_card()],
+                style={"textAlign": "center"}
+            ), 
+        ], className = "pretty_container four columns"
+        ),
+
         # datatable
         html.Div([                
             html.Div(
@@ -207,14 +206,8 @@ app.layout = html.Div([
                     html.Div([
                         dash_table.DataTable(
                             id='table',
-                            css=[
-                                {
-                                    'selector': '.dash-cell div.dash-cell-value',
-                                    'rule': 'display: inline; white-space: inherit; overflow: inherit; text-overflow: inherit;'
-                                }
-                            ],
-                            style_table={'overflowX': 'scroll',
-                                        'overflowY': 'scroll',
+                            style_table={'overflowX': 'auto',
+                                        'overflowY': 'auto',
                                         'height': '400px',
                                         },
                             style_cell={
@@ -228,7 +221,7 @@ app.layout = html.Div([
                             },
                             sort_action='native',
                         ),
-                    ], className = "pretty_container twelve columns"),
+                    ], className = "pretty_container one-third columns"),
             ], className = "row flex-display"),
         ],
     ),
@@ -239,30 +232,25 @@ app.layout = html.Div([
             dcc.Graph(
                 id='pie-chart'
             )
-        ], className = 'pretty_container eight columns'),
-        # Left column
-        html.Div([
-            html.Div(
-                # id="left-column",
-                children=[generate_control_card()],
-                style={"textAlign": "center"}
-            ), 
-        ], className = "pretty_container four columns"
-        ),
+        ], className = 'pretty_container one-third columns'),
     ]),
+
+    html.Div([
+            html.H6('Try clicking on the legend to isolate one trace of data',id='click'),
+        ], className = 'pretty_container one-third columns'),
 
     html.Div([
             dcc.Graph(
                 id='bar-chart'
             )
-        ], className = "pretty_container twelve columns"),
+        ], className = "pretty_container one-third columns"),
         # bottom graph
 
     html.Div([
             dcc.Graph(
                 id='line-chart'
             )
-        ], className = "pretty_container twelve columns"),
+        ], className = "pretty_container one-third columns"),
     ]),
 ])
 
@@ -401,11 +389,7 @@ def update_bar_chart(selected_table):
 
     return {
         'data': trace,
-        'layout': go.Layout(title=str(title), hovermode="closest",
-                            xaxis={'title': "year", 'titlefont': {'color': 'black', 'size': 14},
-                                   'tickfont': {'size': 9, 'color': 'black'}},
-                            yaxis={'title': "Area (‘000 ha)", 'titlefont': {'color': 'black', 'size': 14, },
-                                   'tickfont': {'color': 'black'}})}
+        'layout': go.Layout(title=str(title), hovermode="closest")}
 
 # callback for line chart
 @app.callback(Output('line-chart', 'figure'), [Input('table-selector', 'value')])
@@ -437,8 +421,8 @@ def update_line_chart(selected_table):
 
     return {
         'data': trace,
-        'layout': go.Layout(title=str(title), colorway=['#fdae61', '#abd9e9', '#2c7bb6'],
-                            yaxis={"title": str(trim_selected_df.iloc[0, 0])}, xaxis={"title": "Date"})}
+        'layout': go.Layout(title=str(title), colorway=['#fdae61', '#abd9e9', '#2c7bb6'])
+        }
 
 if __name__ == '__main__':
     app.run_server(debug=True)
